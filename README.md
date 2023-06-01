@@ -13,8 +13,8 @@ can be rebuilt for any `OSX` system.
 
 
 ## To do
-- [ ] Prevent to panic when there is not `.emacs.d` for first run
-- [ ] Add also the `spacemacs` file to the zip file and extract it also in the
+- [x] Prevent to panic when there is not `.emacs.d` for first run
+- [x] Add also the `spacemacs` file to the zip file and extract it also in the
 given `home` directory.
 - [ ] Adding using `termion` a selection based menu in terminal `TUI base`.
 - [ ] Modularity for the repo structure.

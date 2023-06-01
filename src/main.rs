@@ -24,7 +24,7 @@ fn main() {
         .arg(
             Arg::with_name("list_time_capsules")
                 .short('l')
-                .long("list_time_capsule")
+                .long("list_time_capsules")
                 .help("List all available time capsules"),
         )
         .arg(
@@ -84,16 +84,28 @@ fn create_time_capsule_fn() {
     // Create the destination directory if it doesn't exist
     fs::create_dir_all(&destination_dir).expect("Failed to create destination directory");
 
+
+    // Get the source directory path
+    let source_dir = match dirs::home_dir() {
+        Some(home_dir) => home_dir.join(".emacs.d"),
+        None => {
+            eprintln!(
+                "ERROR: Failed to determine home directory - No .emacs.d directory exists!!!"
+            );
+            exit(1);
+        }
+    };
+    println!("{source_dir:#?}");
+    // Check if the source directory exists
+    if !source_dir.exists() || !source_dir.is_dir() {
+        eprintln!("ERROR: Source directory ~/.emacs.d not found");
+        exit(1);
+    }
     // Create the zip archive
     let file = File::create(&destination_file).expect("Failed to create destination file");
     let options = FileOptions::default().compression_method(zip::CompressionMethod::Bzip2); // Deflated, Zstd
 
     let mut zip_writer = ZipWriter::new(file);
-
-    // Get the source directory path
-    let source_dir = dirs::home_dir()
-        .expect("Failed to determine home directory")
-        .join(".emacs.d");
 
     // Get the total number of files in the source directory
     let total_files = count_files(&source_dir);
@@ -116,6 +128,15 @@ fn create_time_capsule_fn() {
 
     // Finish the progress bar
     progress_bar.finish();
+    // ------- save the .spacemacs file  ------------
+    match backup_spacemacs(&timestamp) {
+        Ok(_) => (),
+        Err(err) => {
+            eprintln!("Failed to backup the .spacemacs file: {}", err);
+            exit(1);
+        }
+    }
+    // ----------------------------------------------
 
     if result.is_ok() {
         println!("Time capsule created at: {:?}", destination_file);
@@ -126,6 +147,21 @@ fn create_time_capsule_fn() {
     }
 }
 
+fn backup_spacemacs(timestamp: &str) -> std::io::Result<()> {
+    let source_file = dirs::home_dir().unwrap().join(".spacemacs");
+    let dest_dir = dirs::home_dir().unwrap().join(".emacs_capsules");
+    let dest_file = dest_dir.join(format!(".spacemacs_backup_{}", timestamp));
+
+    // Create the destination directory if it doesn't exist
+    if !dest_dir.exists() {
+        fs::create_dir(&dest_dir)?;
+    }
+
+    // Copy the source file to the destination
+    fs::copy(source_file, dest_file)?;
+
+    Ok(())
+}
 fn count_files(dir: &Path) -> u64 {
     let mut count = 0;
     for entry in dir.read_dir().unwrap() {
