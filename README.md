@@ -7,13 +7,18 @@ can be rebuilt for any `OSX` system.
 
 ## Changelog
 - [x] `2023-06-01 22:28`: Major functionality has been done and ready to be utilized.
+---
 
-- [Eamcs-Time-Machine In Action](./assets/Screenshot 2023-06-01 at 22.20.50.png)
+![Eamcs-Time-Machine In Action](./assets/M01.png)
+
+
 ## To do
 - [ ] Prevent to panic when there is not `.emacs.d` for first run
 - [ ] Add also the `spacemacs` file to the zip file and extract it also in the
 given `home` directory.
 - [ ] Adding using `termion` a selection based menu in terminal `TUI base`.
+- [ ] Modularity for the repo structure.
+- [ ] Update `clap` to use latest version.
 
 ## See all options
 ```bash
