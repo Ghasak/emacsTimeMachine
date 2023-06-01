@@ -58,10 +58,9 @@ fn main() {
         list_time_capsules_fn()
     }
 }
-
-// -------------------------------------------------
-//             Zipping Operations
-// -------------------------------------------------
+// #################################################
+//               CREATE TIME CAPSULE
+// #################################################
 
 fn create_time_capsule_fn() {
     println!("Creating time capsule...");
@@ -183,7 +182,9 @@ fn walk_dir(
     Ok(())
 }
 
-// -------------------------------------------------
+// #################################################
+//               RESTORE TIME CAPSULE
+// #################################################
 
 fn extract_file(
     zip_file: &mut zip::read::ZipFile,
@@ -229,7 +230,7 @@ fn restore_time_capsule_fn() -> io::Result<()> {
             let entry = entry?;
             let path = entry.path();
 
-            if path.is_file() {
+            if path.is_file() && path.file_name() != Some(std::ffi::OsStr::new(".DS_Store")) {
                 capsule_files.push(path);
             }
         }
@@ -240,7 +241,12 @@ fn restore_time_capsule_fn() -> io::Result<()> {
         // Display the list of capsules
         println!("Available Capsules:");
         for (index, capsule) in capsule_files.iter().enumerate() {
-            println!("{}: {:?}", index + 1, capsule.file_name().unwrap());
+            //println!("{}: {:?}", index + 1, capsule.file_name().unwrap());
+            println!(
+                "\x1b[93m[\u{f2da} ]\x1b[0m:(\x1b[96m{}\x1b[0m): {:?}",
+                index + 1,
+                capsule.file_name().unwrap()
+            );
         }
 
         // Prompt the user to select a capsule
@@ -284,7 +290,12 @@ fn restore_time_capsule_fn() -> io::Result<()> {
 
     Ok(())
 }
-// List all capsules in our storage
+
+// #################################################
+//               LIST ALL TIME CAPSULES
+//          List all capsules in our storage
+// #################################################
+
 fn list_time_capsules_fn() {
     // Check if ~/.emacs_capsules directory exists
     let capsules_dir = dirs::home_dir().unwrap().join(".emacs_capsules");
@@ -317,7 +328,11 @@ fn list_time_capsules_fn() {
         // Display the list of capsules
         println!("Available Capsules:");
         for (index, capsule) in sorted_capsules.iter().enumerate() {
-            println!("\x1b[93m[\u{f2da} ]\x1b[0m:(\x1b[96m{}\x1b[0m): {:?}", index + 1, capsule.file_name().unwrap());
+            println!(
+                "\x1b[93m[\u{f2da} ]\x1b[0m:(\x1b[96m{}\x1b[0m): {:?}",
+                index + 1,
+                capsule.file_name().unwrap()
+            );
         }
     } else {
         println!("No capsules found in ~/.emacs_capsules directory.");
