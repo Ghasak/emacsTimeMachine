@@ -1,16 +1,19 @@
 [package]
-name = "emcs_time_machine"
-version = "0.1.0"
+name = "emacs_time_machine"
+version = "2.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 #clap = { version = "4.3.0", features = ["derive"] }
-clap = "3.0.0"
+#clap = "3.0.0"
+clap = "2.33"
 dirs = "5.0.1"
 chrono = "0.4"
 #zip = "0.5.11"
 zip = "0.6.6"
 indicatif = "0.15.0"
 walkdir = "2.3"
+
+

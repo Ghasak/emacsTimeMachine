@@ -6,6 +6,7 @@ workflow of my `Spacemacs`. The binary runs on `arm64` cpu of my machine, but
 can be rebuilt for any `OSX` system.
 
 ## Changelog
+- [x] `2023-09-23 22:01`: Update and fix the cli, the create_capsule function was not working before.
 - [x] `2023-06-01 22:28`: Major functionality has been done and ready to be utilized.
 ---
 
@@ -17,7 +18,7 @@ can be rebuilt for any `OSX` system.
 - [x] Add also the `spacemacs` file to the zip file and extract it also in the
 given `home` directory.
 - [ ] Adding using `termion` a selection based menu in terminal `TUI base`.
-- [ ] Modularity for the repo structure.
+- [x] Modularity for the repo structure.
 - [ ] Update `clap` to use latest version.
 
 ## See all options
@@ -42,14 +43,14 @@ OPTIONS:
 Create a snapshot using:
 
 ```bash
-cargo run -- --create_capsule
+cargo run --release -- --create_capsule
 ```
 
 ## Restore your capsule
 For the list of current selected capsules, select the one to be recovered.
 
 ```bash
-cargo run -- --restore_capsule
+cargo run --release -- --restore_capsule
 ```
 
 - Some binaries will need permission to be built with `Emacs` such as
@@ -58,5 +59,3 @@ cargo run -- --restore_capsule
 ```bash
 chmod +x ~/.emacs.d/elpa/28.2/develop/pdf-tools-20230404.327/epdfinfo
 ```
-
-

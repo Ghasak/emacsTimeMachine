@@ -1,48 +1,49 @@
-use chrono::Local;
-use clap::{App, Arg};
+extern crate chrono;
+extern crate clap;
+extern crate indicatif;
+extern crate walkdir;
+extern crate zip;
+
+use chrono::prelude::*;
+use clap::{App, Arg, crate_version};  // Notice crate_version for handling version
 use indicatif::{ProgressBar, ProgressStyle};
+use std::env;
 use std::fs::{self, File};
-use std::io; //{self, BufRead, BufReader};
+use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::exit;
-use zip::write::{FileOptions, ZipWriter};
+use walkdir::WalkDir;
+use zip::write::FileOptions;
+use zip::CompressionMethod;
 use zip::ZipArchive;
+use zip::ZipWriter;
 
-#[allow(unused_must_use)]
 fn main() {
-    // Define CLI using clap
     let matches = App::new("Time Capsule CLI")
-        .version("1.0")
-        .author("Gh. Ibr.")
+        .version("2.0.0")
+        .author("Gh.Ibr.")
         .about("A CLI for managing Emacs time capsules")
         .arg(
             Arg::with_name("create_capsule")
-                .short('c')
+                .short("c")
                 .long("create_capsule")
                 .help("Create a time capsule of the ~/.emacs directory"),
         )
         .arg(
             Arg::with_name("list_time_capsules")
-                .short('l')
+                .short("l")
                 .long("list_time_capsules")
                 .help("List all available time capsules"),
         )
         .arg(
             Arg::with_name("restore_time_capsule")
-                .short('r')
+                .short("r")
                 .long("restore_time_capsule")
-                .help("Restore a specific time capsule")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("help")
-                .short('h')
-                .long("help")
-                .help("Displays help information"),
+                .help("Restore a specific time capsule"),
         )
         .arg(
             Arg::with_name("version")
-                .short('v')
+                .short("v")
                 .long("version")
                 .help("Displays version information"),
         )
@@ -50,84 +51,72 @@ fn main() {
 
     // Handle CLI flags
     if matches.is_present("create_capsule") {
-        create_time_capsule_fn();
+        create_capsule().unwrap();
     } else if matches.is_present("restore_time_capsule") {
         // Handle the error in the restore_time_capsule_fn
-        restore_time_capsule_fn();
+        restore_time_capsule_fn().unwrap();
     } else if matches.is_present("list_time_capsules") {
         list_time_capsules_fn()
+    } else if matches.is_present("version"){
+        //println!("Emacs Time Capsule v.2.0.0");
+        println!("Emacs TimeMachine version: {}", crate_version!());
     }
 }
-// #################################################
-//               CREATE TIME CAPSULE
-// #################################################
 
-fn create_time_capsule_fn() {
-    println!("Creating time capsule...");
+#[allow(deprecated)]
+fn create_capsule() -> io::Result<()> {
+    let home = env::var("HOME").expect("HOME variable not set");
+    let source_dir = Path::new(&home).join(".emacs.d");
+    let destination_dir = Path::new(&home).join(".emacs_capsules");
 
     // Get the current timestamp in the desired format
     let timestamp = Local::now().format("%a_%b_%d_%Y_%H_%M_%S").to_string();
 
     // Create the destination file path
     let destination_file_name = format!("emacs_capsule_{}.zip", timestamp);
-    let destination_dir = dirs::home_dir()
-        .expect("Failed to determine home directory")
-        .join(".emacs_capsules");
     let destination_file = destination_dir.join(destination_file_name);
 
-    // Check if the destination file already exists
-    if destination_file.exists() {
-        eprintln!("Destination file already exists: {:?}", destination_file);
-        exit(1);
-    }
+    fs::create_dir_all(&destination_dir)?;
+    // Count the total number of files for our progress bar.
+    let total_files = WalkDir::new(&source_dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .count() as u64;
 
-    // Create the destination directory if it doesn't exist
-    fs::create_dir_all(&destination_dir).expect("Failed to create destination directory");
-
-
-    // Get the source directory path
-    let source_dir = match dirs::home_dir() {
-        Some(home_dir) => home_dir.join(".emacs.d"),
-        None => {
-            eprintln!(
-                "ERROR: Failed to determine home directory - No .emacs.d directory exists!!!"
-            );
-            exit(1);
-        }
-    };
-    println!("{source_dir:#?}");
-    // Check if the source directory exists
-    if !source_dir.exists() || !source_dir.is_dir() {
-        eprintln!("ERROR: Source directory ~/.emacs.d not found");
-        exit(1);
-    }
-    // Create the zip archive
-    let file = File::create(&destination_file).expect("Failed to create destination file");
-    let options = FileOptions::default().compression_method(zip::CompressionMethod::Bzip2); // Deflated, Zstd
-
-    let mut zip_writer = ZipWriter::new(file);
-
-    // Get the total number of files in the source directory
-    let total_files = count_files(&source_dir);
+    //let pb = ProgressBar::new(total_files);
 
     // Create a progress bar
-    let progress_bar = ProgressBar::new(total_files);
-    progress_bar.set_style(
+    let pb = ProgressBar::new(total_files);
+    pb.set_style(
         ProgressStyle::default_bar().template(
             "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
         ),
     );
 
-    // Walk through the source directory and add files to the zip archive
-    let result = walk_dir(&source_dir, &mut zip_writer, &options, &progress_bar);
+    let file = fs::File::create(destination_file)?;
+    let mut zip = ZipWriter::new(file);
+    let options = FileOptions::default()
+        .compression_method(CompressionMethod::Stored) // No compression. Change to `Deflated` for compression.
+        .unix_permissions(0o755);
 
-    // Finish writing the zip archive
-    zip_writer
-        .finish()
-        .expect("Failed to write the zip archive");
+    for entry in WalkDir::new(&source_dir) {
+        let entry = entry?;
+        let path = entry.path();
+        let name = path.strip_prefix(Path::new(&home)).unwrap();
 
-    // Finish the progress bar
-    progress_bar.finish();
+        if path.is_file() {
+            pb.inc(1);
+            zip.start_file_from_path(name, options)?;
+            let mut f = fs::File::open(path)?;
+            let mut buffer = Vec::new();
+            f.read_to_end(&mut buffer)?;
+            zip.write_all(&buffer)?;
+        }
+    }
+
+    zip.finish()?;
+    pb.finish_with_message("Capsule created");
+
     // ------- save the .spacemacs file  ------------
     match backup_spacemacs(&timestamp) {
         Ok(_) => (),
@@ -136,15 +125,8 @@ fn create_time_capsule_fn() {
             exit(1);
         }
     }
-    // ----------------------------------------------
 
-    if result.is_ok() {
-        println!("Time capsule created at: {:?}", destination_file);
-    } else {
-        eprintln!("Failed to create time capsule");
-        eprintln!("Error: {:?}", result.err());
-        exit(1);
-    }
+    Ok(())
 }
 
 fn backup_spacemacs(timestamp: &str) -> std::io::Result<()> {
@@ -159,61 +141,6 @@ fn backup_spacemacs(timestamp: &str) -> std::io::Result<()> {
 
     // Copy the source file to the destination
     fs::copy(source_file, dest_file)?;
-
-    Ok(())
-}
-fn count_files(dir: &Path) -> u64 {
-    let mut count = 0;
-    for entry in dir.read_dir().unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        if path.is_dir() {
-            count += count_files(&path);
-        } else {
-            count += 1;
-        }
-    }
-    count
-}
-
-fn walk_dir(
-    dir: &Path,
-    zip_writer: &mut ZipWriter<File>,
-    options: &FileOptions,
-    progress_bar: &ProgressBar,
-) -> io::Result<()> {
-    for entry in dir.read_dir()? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if path.is_dir() {
-            // Create a new directory entry in the zip archive
-            let dir_name = match path.strip_prefix(&dirs::home_dir().unwrap().join(".emacs.d")) {
-                Ok(stripped) => stripped.to_string_lossy().into_owned(),
-                Err(err) => {
-                    eprintln!("Failed to strip prefix for directory: {:?}", err);
-                    continue;
-                }
-            };
-            let zip_dir_path = format!("emacs.d/{}", dir_name);
-            zip_writer.add_directory(zip_dir_path, Default::default())?;
-
-            walk_dir(&path, zip_writer, options, progress_bar)?;
-        } else {
-            let file_name = match path.strip_prefix(&dirs::home_dir().unwrap().join(".emacs.d")) {
-                Ok(stripped) => stripped.to_string_lossy().into_owned(),
-                Err(err) => {
-                    eprintln!("Failed to strip prefix for file: {:?}", err);
-                    continue;
-                }
-            };
-
-            let mut file = File::open(&path)?;
-            zip_writer.start_file(file_name, *options)?;
-            io::copy(&mut file, zip_writer)?;
-            progress_bar.inc(1);
-        }
-    }
 
     Ok(())
 }

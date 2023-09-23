@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>README.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+</head>
+
+<body>
+
+<h1 id="emacs-time-capsules">Emacs Time Capsules</h1>
+<p>The following <code>CLI</code> is based on a <code>binary</code>
+built by <code>Cargo</code>. The purpose is to keep a time snapshot of
+my current configurations directory of the <code>Emacs</code> in the
+home directory in case of some new updates or experiments breaks the
+main workflow of my <code>Spacemacs</code>. The binary runs on
+<code>arm64</code> cpu of my machine, but can be rebuilt for any
+<code>OSX</code> system.</p>
+<h2 id="changelog">Changelog</h2>
+<ul>
+<li><h2
+id="x-2023-06-01-2228-major-functionality-has-been-done-and-ready-to-be-utilized.">[x]
+<code>2023-06-01 22:28</code>: Major functionality has been done and
+ready to be utilized.</h2></li>
+</ul>
+<figure>
+<img src="./assets/M01.png" alt="Eamcs-Time-Machine In Action" />
+<figcaption aria-hidden="true">Eamcs-Time-Machine In Action</figcaption>
+</figure>
+<h2 id="to-do">To do</h2>
+<ul class="task-list">
+<li><input type="checkbox" checked="" />Prevent to panic when there is
+not <code>.emacs.d</code> for first run</li>
+<li><input type="checkbox" checked="" />Add also the
+<code>spacemacs</code> file to the zip file and extract it also in the
+given <code>home</code> directory.</li>
+<li><input type="checkbox" />Adding using <code>termion</code> a
+selection based menu in terminal <code>TUI base</code>.</li>
+<li><input type="checkbox" />Modularity for the repo structure.</li>
+<li><input type="checkbox" />Update <code>clap</code> to use latest
+version.</li>
+</ul>
+<h2 id="see-all-options">See all options</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> run <span class="at">--</span> <span class="at">--help</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Time</span> Capsule CLI 1.0</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Gh.</span> Ibr.</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ex">A</span> CLI for managing Emacs time capsules</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">USAGE:</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">emcs_time_machine</span> <span class="pp">[</span><span class="ss">OPTIONS</span><span class="pp">]</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ex">OPTIONS:</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="ex">-c,</span> <span class="at">--create_capsule</span>          Create a time capsule of the ~/.emacs directory</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="ex">-h,</span> <span class="at">--help</span>                    Displays help information</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="ex">-l,</span> <span class="at">--list_time_capsule</span>       List all available time capsules</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="ex">-r,</span> <span class="at">--restore_time_capsule</span>    Restore a specific time capsule</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="ex">-v,</span> <span class="at">--version</span>                 Displays version information</span></code></pre></div>
+<h2 id="create-your-capsules">Create your capsules</h2>
+<p>Create a snapshot using:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> run <span class="at">--</span> <span class="at">--create_capsule</span></span></code></pre></div>
+<h2 id="restore-your-capsule">Restore your capsule</h2>
+<p>For the list of current selected capsules, select the one to be
+recovered.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> run <span class="at">--</span> <span class="at">--restore_capsule</span></span></code></pre></div>
+<ul>
+<li>Some binaries will need permission to be built with
+<code>Emacs</code> such as <code>epdfinfo</code> binary which is based
+on <code>pdf-tools</code>. Just run,</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x ~/.emacs.d/elpa/28.2/develop/pdf-tools-20230404.327/epdfinfo</span></code></pre></div>
+
+</body>
+</html>
